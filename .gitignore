@@ -1,0 +1,18 @@
+# PhpStorm
+/.idea
+
+# Composer
+/vendor
+/composer.lock
+# PHP-CS-Fixer
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+
+# Psalm
+/.psalm/cache
+
+# PHPUnit
+/.phpunit.cache
+.phpunit.result.cache
+/docker-compose.yml
+/deploy/data/

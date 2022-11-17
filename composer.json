@@ -1,0 +1,26 @@
+{
+    "name": "algetar/nsu",
+    "description": "number in words utility",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Algetar\\Nsu\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Algetar\\Nsu\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Gennadi Tatarnikov",
+            "email": "ta_gena@mail.ru"
+        }
+    ],
+    "require": {
+        "php": ">7.4",
+        "phpunit/phpunit": "^9.5",
+        "ext-mbstring": "*"
+    }
+}
