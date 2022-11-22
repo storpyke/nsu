@@ -2,20 +2,20 @@
 
 namespace Algetar\Nsu\Tests\Components;
 
-use Algetar\Nsu\Components\IntegerUnit;
+use Algetar\Nsu\Components\Numbering;
 use Algetar\Nsu\Exception\UnknownIndexException;
 use Algetar\Nsu\Exception\UnknownPropertyException;
 use Algetar\Nsu\Spell;
 use PHPUnit\Framework\TestCase;
 
-class IntegerUnitTest extends TestCase
+class NumberingTest extends TestCase
 {
     /**
      * @throws UnknownIndexException
      */
     public function testItCanSpellZero()
     {
-        $int = new IntegerUnit();
+        $int = new Numbering();
         $counted = [
             ['titles' => ['целых', 'целое', 'целых'], 'type' => Spell::GENDER_MALE]
         ];
@@ -29,7 +29,7 @@ class IntegerUnitTest extends TestCase
      */
     public function testItCanSpellWithCounted()
     {
-        $int = new IntegerUnit();
+        $int = new Numbering();
 
         $counted = [
             ['titles' => ['копеек', 'копейка', 'копейки'], 'type' => Spell::GENDER_FEMALE]
@@ -46,7 +46,7 @@ class IntegerUnitTest extends TestCase
      */
     public function testItCanSpellThousand()
     {
-        $int = new IntegerUnit();
+        $int = new Numbering();
 
         $counted = [
             ['titles' => ['дней', 'день', 'дня'], 'type' => Spell::GENDER_MALE]

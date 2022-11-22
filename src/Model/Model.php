@@ -6,10 +6,9 @@ namespace Algetar\Nsu\Model;
 
 use Algetar\Nsu\Exception\UnknownIndexException;
 use Algetar\Nsu\Exception\UnknownPropertyException;
-use Algetar\Nsu\Spell;
 
 /**
- * @property string $titles
+ * @property array $titles
  * @property int $type
  */
 class Model
@@ -34,7 +33,7 @@ class Model
     {
         $titles = $this->titles;
 
-        return $titles[$type] ?: $titles[Spell::DECLENSION_MANY];
+        return $titles[$type] ?? $titles[0];
     }
 
     /**
@@ -54,6 +53,11 @@ class Model
         }
 
         return $this;
+    }
+
+    public function exists($id): bool
+    {
+        return array_key_exists($id, $this->source);
     }
 
     /**

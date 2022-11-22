@@ -7,7 +7,7 @@ namespace Algetar\Nsu\Components;
 use Algetar\Nsu\Exception\UnknownIndexException;
 use Algetar\Nsu\Model\ThousandthNameModel;
 
-class IntegerUnit
+class Numbering
 {
     /* Произносит тысячный разряд числа */
     private Thousandth $thousandth;
@@ -24,8 +24,23 @@ class IntegerUnit
     /* Исчисляемого  */
     private string $counted;
 
-    public function __construct()
+    /* количество цифр */
+    private int $length;
+
+    /* True - ноль в нулевом разряде произносится  */
+    private bool $spellZero;
+
+    /**
+     * @throws UnknownIndexException
+     */
+    public static function create($number, array $counted = null, bool $spellZero = false): Numbering
     {
+        return (new static($spellZero))->spell($number, $counted, $spellZero);
+    }
+
+    public function __construct(bool $spellZero = false)
+    {
+        $this->spellZero = $spellZero;
         $this->thousandth = new Thousandth();
         $this->thousandthNames = new ThousandthNameModel();
     }
@@ -57,9 +72,10 @@ class IntegerUnit
     /**
      * @throws UnknownIndexException
      */
-    public function spell($number, array $counted = null): self
+    public function spell($number, array $counted = null, bool $spellZero = false): self
     {
         $this->number = (int) $number;
+        $this->length = strlen((string) $number);
 
         if ($counted !== null) {
             $this->setCounted($counted);
@@ -92,7 +108,7 @@ class IntegerUnit
             return trim($this->spellNumber(substr($stringValue, 0, -3), $i + 1) . ' ' . $spelt);
         }
 
-        if ($i === 0 && $number == null) {
+        if ($i === 0 && ($number == null || $this->spellZero)) {
             $spelt = $this->thousandth->spellZero($this->thousandthNames->gender());
         } else {
             $spelt = $this->thousandth->spell($stringValue, $this->thousandthNames->gender());

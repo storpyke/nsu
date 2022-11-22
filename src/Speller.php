@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Algetar\Nsu;
 
-use Algetar\Nsu\Components\IntegerUnit;
+use Algetar\Nsu\Components\Numbering;
 
 /**
  *
@@ -17,7 +17,7 @@ class Speller
     private ?int $integerPart = null;
 
     /* Дробная часть числа. */
-    private ?int $fractionalPart = null;
+    private ?int $decimalPart = null;
 
     /**
      * Род исчисляемого целой и дробной части.
@@ -26,7 +26,7 @@ class Speller
     private array $gender;
 
     /**
-     * @var IntegerUnit[]
+     * @var Numbering[]
      */
     private array $int = [];
 
@@ -69,9 +69,9 @@ class Speller
         return $this->integerPart;
     }
 
-    public function fractional(): ?int
+    public function decimal(): ?int
     {
-        return $this->fractionalPart;
+        return $this->decimalPart;
     }
 
     public function getSpeltInteger(): ?string
@@ -79,7 +79,7 @@ class Speller
         return $this->spelt[0] ?? null;
     }
 
-    public function getSpeltFractional(): ?string
+    public function getSpeltdecimal(): ?string
     {
         return $this->spelt[1] ?? null;
     }
@@ -105,10 +105,10 @@ class Speller
         $this->integerPart = (int) $value;
         if (($pos = strpos($value, '.')) !== false) {
             $this->integer = ($pos === 0) ? 0 : (int) substr($value, 0, $pos);
-            $this->fractionalPart = (int) substr($value, $pos + 1);
+            $this->decimalPart = (int) substr($value, $pos + 1);
         }
 
-        //$this->int[0] = (new IntegerUnit())->spell($this->integer(), $this->gender[0])
+        //$this->int[0] = (new Numbering())->spell($this->integer(), $this->gender[0])
 
         return $this;
     }
