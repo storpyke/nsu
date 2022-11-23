@@ -7,10 +7,8 @@ use Algetar\Nsu\Components\Decimal;
 use Algetar\Nsu\Components\Integer;
 use Algetar\Nsu\Components\ParseCounted;
 use Algetar\Nsu\Components\ParseNumber;
-use Algetar\Nsu\Components\SpellClassInterface;
 use Algetar\Nsu\Exception\InvalidNumberFormat;
 use Algetar\Nsu\Exception\UnknownIndexException;
-use Algetar\Nsu\Model\CountedGroupModel;
 
 class Spell
 {
