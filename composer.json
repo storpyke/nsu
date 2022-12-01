@@ -2,6 +2,7 @@
     "name": "algetar/nsu",
     "description": "number in words utility",
     "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Algetar\\Nsu\\": "src/"
