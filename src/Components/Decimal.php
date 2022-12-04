@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Algetar\Nsu\Components;
 
+use Algetar\Nsu\Exception\InvalidNumberFormat;
 use Algetar\Nsu\Exception\UnknownIndexException;
-use Algetar\Nsu\Model\DecimalNameModel;
+use Algetar\Nsu\Model\CountedGroupModel;
 use Algetar\Nsu\Spell;
 
-class Decimal
+class Decimal implements SpellNumberInterface
 {
     /* Заданное число */
     Private ParseNumberInterface $number;
@@ -53,38 +54,89 @@ class Decimal
 
     /**
      * @throws UnknownIndexException
+     * @throws InvalidNumberFormat
      */
     public function spell(): string
     {
-        $decimalNames = new DecimalNameModel();
-        $decimalNames->find($this->number->decimalLength());
-
-        if ($this->counted->spellDecimal()) {
-            $this->counted->unshiftCounted('целое');
+        if ($this->counted->groupType()  === CountedGroupModel::GROUP_MONEY) {
+            return $this->spellMoney();
         }
 
-        $counted = $this->counted->counted();
+        if (
+            $this->counted->groupType() === CountedGroupModel::GROUP_WEIGHT &&
+            $this->number->integer() > 999
+        ) {
+            return $this->spellMultiCounted();
+        }
 
-        $integer = Numbering::create($this->number->integer(), [$counted[0]]);
+        $integer = Numbering::create($this->number->integer(), [$this->counted->countedModel('целое')->row()]);
+        $decimal = Numbering::create($this->number->decimal(), [$this->number->decimalModel()->row()]);
+
         $this->values = [
             $integer->spelt(),
             $integer->counted(),
-            $this->number->integer()
+            $integer->number(),
+            trim($decimal->spelt() . ' ' . $decimal->counted()),
+            $this->counted->countedModel()->name(Spell::DECLENSION_FEW),
+            $decimal->number(),
         ];
 
-        if ($this->counted->spellDecimal()) {
-            $decimal = Numbering::create($this->number->decimal(), [$decimalNames->row()], $this->counted->spellZero());
+        $this->spelt = vsprintf($this->format, $this->values);
 
-            $this->values[] = trim($decimal->spelt() . ' ' . $decimal->counted());
-            $this->values[] = $this->counted->countedModel()->name(Spell::DECLENSION_FEW);
-        } else {
-            $decimal = Numbering::create($this->number->decimal(), [$counted[1]]);
+        return $this->spelt;
+    }
 
-            $this->values[] = $decimal->spelt();
-            $this->values[] = $decimal->counted();
-        }
+    /**
+     * @throws UnknownIndexException
+     */
+    private function spellMoney(): string
+    {
+        $counted = $this->counted->counted();
+        $integer = Numbering::create($this->number->integer(), [$counted[0]]);
+        $decimal = Numbering::create($this->number->decimal(), [$counted[1]]);
 
-        $this->values[] = $this->number->decimal();
+        $this->values = [
+            $integer->spelt(),
+            $integer->counted(),
+            $integer->number(),
+            $decimal->spelt(),
+            $decimal->counted(),
+            $decimal->number()
+        ];
+
+        $this->spelt = vsprintf($this->format, $this->values);
+
+        return $this->spelt;
+    }
+
+    /**
+     * @throws UnknownIndexException
+     * @throws InvalidNumberFormat
+     */
+    private function spellMultiCounted(): string
+    {
+        $numberValue = substr((string)$this->number->integer(), 0, -3);
+        $counted = $this->counted->counted();
+        array_pop($counted);
+
+        $integer = Numbering::create($numberValue, $counted, true);
+
+        $numberValue = substr((string)$this->number->integer(), -3) . '.' . $this->number->decimal();
+        $number = ParseNumber::parse($numberValue);
+        $counted = ParseCounted::parse($this->counted->id());
+
+        $decimal = new Decimal($number, $counted);
+        $decimal->spell();
+
+        $integerSpelt = trim($integer->spelt() . ' ' . $integer->counted());
+        $this->values = [
+            trim($integerSpelt . ' ' . $decimal->values()[0]),
+            $decimal->values()[1],
+            $this->number->integer(),
+            $decimal->values()[3],
+            $decimal->values()[4],
+            $decimal->values()[5]
+        ];
 
         $this->spelt = vsprintf($this->format, $this->values);
 

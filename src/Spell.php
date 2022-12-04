@@ -60,6 +60,11 @@ class Spell
         return $this->spelt;
     }
 
+    public function speltValues(): array
+    {
+        return $this->speltValues;
+    }
+
     /**
      * @throws InvalidNumberFormat
      * @throws UnknownIndexException

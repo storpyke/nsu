@@ -7,7 +7,7 @@ namespace Algetar\Nsu\Components;
 use Algetar\Nsu\Exception\UnknownIndexException;
 use Algetar\Nsu\Spell;
 
-class Integer
+class Integer implements SpellNumberInterface
 {
     /* Заданное число */
     protected ParseNumberInterface $number;
@@ -55,11 +55,16 @@ class Integer
      */
     public function spell(): string
     {
-        $value = Numbering::create($this->number->integer(), $this->counted->counted());
+        $kipCountedOnZero = false;
+        if ($this->counted->groupType() > 0 && $this->counted->spellDecimal()) {
+            $kipCountedOnZero = true;
+        }
+
+        $value = Numbering::create($this->number->integer(), $this->counted->counted(), $kipCountedOnZero);
         $this->values = [
             $value->spelt(),
             $value->counted(),
-            $this->number->integer()
+            $value->number()
         ];
 
         $this->spelt = vsprintf($this->format, $this->values);

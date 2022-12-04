@@ -23,9 +23,9 @@ class ParseCounted implements ParseCountedInterface
     /* Тип группы, 0   */
     private int $groupType = CountedGroupModel::GROUP_NONE;
 
-    private ?array $counted = null;
+    private array $counted = [];
 
-    private bool $spellZero = false;
+    private bool $zeroIsSpelt = false;
 
     /**
      * @throws UnknownIndexException
@@ -46,6 +46,11 @@ class ParseCounted implements ParseCountedInterface
         $this->parseCounted($format);
     }
 
+    public function id(): string
+    {
+        return $this->id;
+    }
+
     public function groupType(): int
     {
         return $this->groupType;
@@ -61,37 +66,22 @@ class ParseCounted implements ParseCountedInterface
         return $this->shortTo;
     }
 
-    public function spellZero(): bool
+    public function zeroIsSpelt(): bool
     {
-        return $this->spellZero;
+        return $this->zeroIsSpelt;
     }
 
     public function spellDecimal(): bool
     {
-        return $this->groupNames->spellDecimal($this->groupNames->type);
+        return $this->groupNames->spellDecimal($this->groupType);
     }
 
     /**
      * @throws UnknownIndexException
      */
-    public function countedModel(): CountedNounModel
+    public function countedModel($id = null): CountedNounModel
     {
-        return $this->nounNames->find($this->id);
-    }
-
-    /**
-     * @param string|int $id
-     *
-     * @return $this
-     * @throws UnknownIndexException
-     */
-    public function unshiftCounted($id): self
-    {
-        $this->nounNames->find($id);
-
-        array_unshift($this->counted, $this->nounNames->row());
-
-        return $this;
+        return $this->nounNames->find($id ?? $this->id);
     }
 
     /**
@@ -124,7 +114,7 @@ class ParseCounted implements ParseCountedInterface
 
             return;
         }
-        
+
         throw new UnknownIndexException('Unknown counted or group: ' . $format);
     }
 
@@ -134,11 +124,11 @@ class ParseCounted implements ParseCountedInterface
     private function setGroup(string $id)
     {
         $this->groupNames->find($id);
-        
+
         $this->groupType = $this->groupNames->type;
 
         if (count($this->groupNames->titles) > 0 && $this->spellDecimal()) {
-            $this->spellZero = true;
+            $this->zeroIsSpelt = true;
         }
 
         $lastId = '';
@@ -156,7 +146,7 @@ class ParseCounted implements ParseCountedInterface
     private function addCounted(string $id)
     {
         $this->nounNames->find($id);
-        
+
         $this->counted[] = $this->nounNames->row();
     }
 }

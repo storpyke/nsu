@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Algetar\Nsu\Components;
 
 use Algetar\Nsu\Exception\InvalidNumberFormat;
+use Algetar\Nsu\Exception\UnknownIndexException;
+use Algetar\Nsu\Model\DecimalNameModel;
 
 class ParseNumber implements ParseNumberInterface
 {
@@ -58,6 +60,14 @@ class ParseNumber implements ParseNumberInterface
     public function decimalLength(): int
     {
         return $this->decimalLength;
+    }
+
+    /**
+     * @throws UnknownIndexException
+     */
+    public function decimalModel(): DecimalNameModel
+    {
+        return DecimalNameModel::get($this->decimalLength);
     }
 
     /**

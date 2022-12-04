@@ -6,6 +6,7 @@ namespace Algetar\Nsu\Components;
 
 use Algetar\Nsu\Exception\UnknownIndexException;
 use Algetar\Nsu\Model\ThousandthNameModel;
+use Algetar\Nsu\Spell;
 
 class Numbering
 {
@@ -27,20 +28,21 @@ class Numbering
     /* количество цифр */
     private int $length;
 
-    /* True - ноль в нулевом разряде произносится  */
-    private bool $spellZero;
+    /* Удалить исчисляемые для нулевых разрядов */
+    private bool $skipCountedOnZero;
 
     /**
      * @throws UnknownIndexException
      */
-    public static function create($number, array $counted = null, bool $spellZero = false): Numbering
+    public static function create($number, array $counted = null, bool $skipCountedOnZero = false): Numbering
     {
-        return (new static($spellZero))->spell($number, $counted, $spellZero);
+        return (new static($skipCountedOnZero))->spell($number, $counted);
     }
 
-    public function __construct(bool $spellZero = false)
+    public function __construct(bool $skipCountedOnZero = false)
     {
-        $this->spellZero = $spellZero;
+        $this->skipCountedOnZero = $skipCountedOnZero;
+
         $this->thousandth = new Thousandth();
         $this->thousandthNames = new ThousandthNameModel();
     }
@@ -69,19 +71,29 @@ class Numbering
         return $this;
     }
 
+    public function numberLength(): int
+    {
+        return $this->length;
+    }
+
     /**
      * @throws UnknownIndexException
      */
-    public function spell($number, array $counted = null, bool $spellZero = false): self
+    public function spell($number, array $counted = null): self
     {
         $this->number = (int) $number;
         $this->length = strlen((string) $number);
 
         if ($counted !== null) {
+            $counted = $this->skipZeroDigits($counted);
             $this->setCounted($counted);
         }
 
-        $this->spelt = $this->spellNumber($number);
+        if ($this->number === 0) {
+            $this->spelt = $this->spellZero();
+        } else {
+            $this->spelt = $this->spellNumber($this->number);
+        }
 
         return $this;
     }
@@ -97,29 +109,79 @@ class Numbering
         $this->thousandthNames->find($i);
 
         if ($length > 3) {
-            $spelt = $this->thousandth->spell(substr($stringValue, -3), $this->thousandthNames->gender());
-
-            if ($i === 0) {
-                $this->counted = $this->thousandthNames->name($this->thousandth->declension());
-            } else {
-                $spelt = trim($spelt . ' ' . $this->thousandthNames->name($this->thousandth->declension()));
-            }
+            $spelt = $this->spellThousand(substr($stringValue, -3), $i);
 
             return trim($this->spellNumber(substr($stringValue, 0, -3), $i + 1) . ' ' . $spelt);
         }
 
-        if ($i === 0 && ($number == null || $this->spellZero)) {
-            $spelt = $this->thousandth->spellZero($this->thousandthNames->gender());
-        } else {
-            $spelt = $this->thousandth->spell($stringValue, $this->thousandthNames->gender());
+        return $this->spellThousand($stringValue, $i);
+    }
+
+    /**
+     * @throws UnknownIndexException
+     */
+    private function spellThousand(string $number, int $i): string
+    {
+        $thousand = (int) $number;
+        if ($thousand == 0) {
+            if ($i === 0) {
+                $this->counted = $this->thousandthNames->name(Spell::DECLENSION_MANY);
+            }
+
+            return '';
         }
 
+        $spelt = $this->thousandth->spell($thousand, $this->thousandthNames->gender());
+        $counted = $this->thousandthNames->name($this->thousandth->declension());
+
         if ($i === 0) {
-            $this->counted = $this->thousandthNames->name($this->thousandth->declension());
+            $this->counted = $counted;
         } else {
-            $spelt = trim($spelt . ' ' . $this->thousandthNames->name($this->thousandth->declension()));
+            $spelt = trim($spelt . ' ' . $counted);
         }
 
         return $spelt;
+    }
+
+    /**
+     * @throws UnknownIndexException
+     */
+    private function spellZero(): string
+    {
+        $this->thousandthNames->find(0);
+        $spelt = $this->thousandth->spellZero($this->thousandthNames->gender());
+        $this->counted = $this->thousandthNames->name($this->thousandth->declension());
+
+        return $spelt;
+    }
+
+    private function skipZeroDigits(array $counted): array
+    {
+        if (! $this->skipCountedOnZero) {
+            return $counted;
+        }
+
+        return $this->skipZeroDigit($counted);
+    }
+
+    private function skipZeroDigit(array $counted): array
+    {
+        if (count($counted) < 2) {
+            return $counted;
+        }
+
+        $strValue = (string) $this->number;
+
+        if (strlen($strValue) > 3) {
+            $thousand = substr($strValue, -3);
+            if ($thousand == 0) {
+                array_pop($counted);
+                $this->number = (int)substr($strValue, 0,-3);
+
+                return $this->skipZeroDigit($counted);
+            }
+        }
+
+        return $counted;
     }
 }

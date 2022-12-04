@@ -3,10 +3,19 @@ declare(strict_types=1);
 
 namespace Algetar\Nsu\Model;
 
+use Algetar\Nsu\Exception\UnknownIndexException;
 use Algetar\Nsu\Spell;
 
 class DecimalNameModel extends NounModel
 {
+    /**
+     * @throws UnknownIndexException
+     */
+    public static function get($id): self
+    {
+        return (new static())->find($id);
+    }
+
     protected array $source = [
         //доли склоняются: пять десятых, одна десятая, две десятых
         0 => ['titles' => ['целых', 'целое', 'целых'], 'type' => 0], //произнесение целой части дробного числа

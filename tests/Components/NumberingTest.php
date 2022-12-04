@@ -15,7 +15,7 @@ class NumberingTest extends TestCase
      */
     public function testItCanSpellZero()
     {
-        $int = new Numbering();
+        $int = new Numbering(true);
         $counted = [
             ['titles' => ['целых', 'целое', 'целых'], 'type' => Spell::GENDER_MALE]
         ];
